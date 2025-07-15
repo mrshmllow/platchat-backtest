@@ -118,10 +118,10 @@ def write_match_csv(match_id: str, matches: list[Match]):
             )
 
 
-def main() -> None:
-    existing_matches = [match.url for match in read_match_csv("2498")]
+def scrape_event(event_id: str):
+    existing_matches = [match.url for match in read_match_csv(event_id)]
     print(existing_matches)
-    match_urls = get_matches("2498")
+    match_urls = get_matches(event_id)
 
     matches: list[Match] = []
 
@@ -134,7 +134,19 @@ def main() -> None:
         if odds is not None:
             matches.append(odds)
 
-    write_match_csv("2498", matches)
+    write_match_csv(event_id, matches)
+
+
+def main() -> None:
+    EMEA = "2498"
+    PACIFIC = "2500"
+    CHINA = "2499"
+    AMERICAS = "2501"
+
+    # scrape_event(CHINA)
+    scrape_event(PACIFIC)
+    scrape_event(AMERICAS)
+    scrape_event(EMEA)
 
 
 if __name__ == "__main__":
