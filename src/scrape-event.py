@@ -60,8 +60,12 @@ def get_odds(match_url: str):
 
     print(match_url, len(soup.select("div.mod-pending")), len(match_bet))
 
-    if len(soup.select("div.mod-pending")) != 0 or len(match_bet) != 2:
+    if len(soup.select("div.mod-pending")) != 0 or len(match_bet) != 1:
         print("skipping", match_url, "no odds found or match concluded")
+        return None
+
+    if len(match_bet[0].select("span.match-bet-item-team")) != 2:
+        print("skipping", match_url, "match concluded")
         return None
 
     team_a_name, team_b_name = [
@@ -128,6 +132,7 @@ def scrape_event(event_id: str):
             continue
 
         odds = get_odds(url)
+        print(odds)
         if odds is not None:
             matches.append(odds)
 
@@ -140,7 +145,7 @@ def main() -> None:
     CHINA = "2499"
     AMERICAS = "2501"
 
-    # scrape_event(CHINA)
+    scrape_event(CHINA)
     scrape_event(PACIFIC)
     scrape_event(AMERICAS)
     scrape_event(EMEA)
