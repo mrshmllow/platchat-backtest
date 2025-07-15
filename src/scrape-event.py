@@ -119,14 +119,15 @@ def write_match_csv(match_id: str, matches: list[Match]):
 
 
 def scrape_event(event_id: str):
-    existing_matches = [match.url for match in read_match_csv(event_id)]
-    print(existing_matches)
+    matches = read_match_csv(event_id)
+    existing_urls = [match.url for match in matches]
+
+    print(matches)
+
     match_urls = get_matches(event_id)
 
-    matches: list[Match] = []
-
     for url in match_urls[4:]:
-        if url in existing_matches:
+        if url in existing_urls:
             print("skipping", url, "already recorded")
             continue
 
