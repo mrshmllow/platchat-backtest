@@ -58,10 +58,10 @@ def get_odds(match_url: str):
         print(match_url, "has more than 1 `a.match-bet-item`. ????")
         exit()
 
-    print(len(soup.select("div.mod-pending")), len(match_bet))
+    print(match_url, len(soup.select("div.mod-pending")), len(match_bet))
 
-    if len(soup.select("div.mod-pending")) != 0 or len(match_bet) == 0:
-        print("skipping", match_url, "no odds found")
+    if len(soup.select("div.mod-pending")) != 0 or len(match_bet) != 2:
+        print("skipping", match_url, "no odds found or match concluded")
         return None
 
     team_a_name, team_b_name = [
@@ -126,7 +126,7 @@ def scrape_event(event_id: str):
 
     match_urls = get_matches(event_id)
 
-    for url in match_urls[4:]:
+    for url in match_urls:
         if url in existing_urls:
             print("skipping", url, "already recorded")
             continue
