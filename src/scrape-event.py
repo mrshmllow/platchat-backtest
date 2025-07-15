@@ -89,7 +89,7 @@ def read_match_csv(match_id: str) -> list[Match]:
         return matches
 
     with open(FILE, newline="") as csvfile:
-        match_reader = csv.reader(csvfile, delimiter=" ", quotechar="|")
+        match_reader = csv.reader(csvfile, dialect="excel-tab")
 
         for row in match_reader:
             matches.append(
@@ -101,9 +101,7 @@ def read_match_csv(match_id: str) -> list[Match]:
 
 def write_match_csv(match_id: str, matches: list[Match]):
     with open(f"{match_id}.csv", "w", newline="") as csvfile:
-        spamwriter = csv.writer(
-            csvfile, delimiter=" ", quotechar="|", quoting=csv.QUOTE_MINIMAL
-        )
+        spamwriter = csv.writer(csvfile, dialect="excel-tab")
 
         for odds in matches:
             spamwriter.writerow(
@@ -121,8 +119,6 @@ def write_match_csv(match_id: str, matches: list[Match]):
 def scrape_event(event_id: str):
     matches = read_match_csv(event_id)
     existing_urls = [match.url for match in matches]
-
-    print(matches)
 
     match_urls = get_matches(event_id)
 
