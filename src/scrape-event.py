@@ -12,6 +12,10 @@ from dataclasses import dataclass
 from datetime import datetime
 import os.path
 
+import ssl
+
+ssl._create_default_https_context = ssl._create_unverified_context
+
 
 @dataclass
 class Match:
