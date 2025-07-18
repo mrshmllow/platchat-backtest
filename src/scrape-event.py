@@ -29,6 +29,9 @@ class Match:
 
     recorded_date: str
 
+    # "Unknown", "A", "B", "AG", "BG", "Split"
+    platchat: str
+
 
 def get_matches(stage_id: str) -> list[str]:
     URL = f"https://www.vlr.gg/event/matches/{stage_id}/"
@@ -86,6 +89,7 @@ def get_odds(match_url: str):
         str(team_b_name),
         float(str(team_b_odds)),
         now.strftime("%m/%d/%Y, %H:%M:%S"),
+        "Unknown",
     )
 
 
@@ -101,7 +105,15 @@ def read_match_csv(match_id: str) -> list[Match]:
 
         for row in match_reader:
             matches.append(
-                Match(row[0], row[1], float(row[2]), row[3], float(row[4]), row[5])
+                Match(
+                    row[0],
+                    row[1],
+                    float(row[2]),
+                    row[3],
+                    float(row[4]),
+                    row[5],
+                    row[6],
+                )
             )
 
     return matches
@@ -120,6 +132,7 @@ def write_match_csv(match_id: str, matches: list[Match]):
                     odds.team_b_name,
                     odds.team_b_odds,
                     odds.recorded_date,
+                    odds.platchat,
                 ]
             )
 
