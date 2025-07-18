@@ -96,7 +96,7 @@ class Match:
             if self.pred.is_team(winner):
                 self.winnings = self.bet * odds
             else:
-                self.winnings = -self.bet
+                self.winnings = 0
 
         calculate_winnings(self.winner)
 
