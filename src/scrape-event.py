@@ -5,16 +5,56 @@
 # ]
 # ///
 
+from typing import Literal
+from enum import Enum
 from bs4 import BeautifulSoup
 from urllib.request import Request, urlopen
 import csv
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 import os.path
 
 import ssl
 
 ssl._create_default_https_context = ssl._create_unverified_context
+
+PLATCHAT_GUARANTEE = 500
+NORMAL_PRED = 100
+
+
+class Team(Enum):
+    A = "A"
+    B = "B"
+    Unknown = "Unknown"
+
+    def opposite(self):
+        if self == Team.Unknown:
+            return self
+
+        if self == Team.A:
+            return Team.B
+
+        return Team.A
+
+
+class Prediction(Enum):
+    A = "A"
+    B = "B"
+    A_Guarantee = "AG"
+    B_Guarantee = "BG"
+    Split = "Split"
+    Unknown = "Unknown"
+
+    def is_guarantee(self):
+        return self == Prediction.A_Guarantee or self == Prediction.B_Guarantee
+
+    def is_team(self, team: Team):
+        if self == Prediction.A or self == Prediction.A_Guarantee:
+            return team == Team.A
+        if self == Prediction.B or self == Prediction.B_Guarantee:
+            return team == Team.B
+
+        return False
 
 
 @dataclass
@@ -30,9 +70,35 @@ class Match:
     recorded_date: str
 
     # "Unknown", "A", "B", "AG", "BG", "Split"
-    platchat: str
+    pred: Prediction
     # "Unknown", "A", "B"
-    winner: str
+    winner: Team
+
+    bet: int = field(init=False)
+    winnings: float = field(init=False)
+
+    def __post_init__(self):
+        if self.pred == Prediction.Split or self.pred == Prediction.Unknown:
+            self.bet = 0
+        elif self.pred.is_guarantee():
+            self.bet = PLATCHAT_GUARANTEE
+        else:
+            self.bet = NORMAL_PRED
+
+        self.winnings = 0
+
+        def calculate_winnings(winner: Team):
+            if self.winner == Team.Unknown:
+                return
+
+            odds = self.team_a_odds if winner == Team.A else self.team_b_odds
+
+            if self.pred.is_team(winner):
+                self.winnings = self.bet * odds
+            else:
+                self.winnings = -self.bet
+
+        calculate_winnings(self.winner)
 
 
 def get_matches(stage_id: str) -> list[str]:
@@ -85,14 +151,14 @@ def get_odds(match_url: str):
     ]
 
     return Match(
-        match_url,
-        str(team_a_name),
-        float(str(team_a_odds)),
-        str(team_b_name),
-        float(str(team_b_odds)),
-        now.strftime("%m/%d/%Y, %H:%M:%S"),
-        "Unknown",
-        "Unknown",
+        url=match_url,
+        team_a_name=str(team_a_name),
+        team_a_odds=float(str(team_a_odds)),
+        team_b_name=str(team_b_name),
+        team_b_odds=float(str(team_b_odds)),
+        recorded_date=now.strftime("%m/%d/%Y, %H:%M:%S"),
+        pred=Prediction.Unknown,
+        winner=Team.Unknown,
     )
 
 
@@ -109,14 +175,14 @@ def read_match_csv(match_id: str) -> list[Match]:
         for row in match_reader:
             matches.append(
                 Match(
-                    row[0],
-                    row[1],
-                    float(row[2]),
-                    row[3],
-                    float(row[4]),
-                    row[5],
-                    row[6],
-                    row[7],
+                    url=row[0],
+                    team_a_name=row[1],
+                    team_a_odds=float(row[2]),
+                    team_b_name=row[3],
+                    team_b_odds=float(row[4]),
+                    recorded_date=row[5],
+                    pred=Prediction(row[6]),
+                    winner=Team(row[7]),
                 )
             )
 
@@ -136,8 +202,10 @@ def write_match_csv(match_id: str, matches: list[Match]):
                     odds.team_b_name,
                     odds.team_b_odds,
                     odds.recorded_date,
-                    odds.platchat,
-                    odds.winner,
+                    odds.pred.value,
+                    odds.winner.value,
+                    odds.bet,
+                    odds.winnings,
                 ]
             )
 
