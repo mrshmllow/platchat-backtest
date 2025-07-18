@@ -148,15 +148,15 @@ def scrape_event(event_id: str):
 
     match_urls = get_matches(event_id)
 
-    # for url in match_urls:
-    #     if url in existing_urls:
-    #         print("skipping", url, "already recorded")
-    #         continue
-    #
-    #     odds = get_odds(url)
-    #     print(odds)
-    #     if odds is not None:
-    #         matches.append(odds)
+    for url in match_urls:
+        if url in existing_urls:
+            print("skipping", url, "already recorded")
+            continue
+
+        odds = get_odds(url)
+        print(odds)
+        if odds is not None:
+            matches.append(odds)
 
     write_match_csv(event_id, matches)
 
