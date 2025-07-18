@@ -31,6 +31,8 @@ class Match:
 
     # "Unknown", "A", "B", "AG", "BG", "Split"
     platchat: str
+    # "Unknown", "A", "B"
+    winner: str
 
 
 def get_matches(stage_id: str) -> list[str]:
@@ -90,6 +92,7 @@ def get_odds(match_url: str):
         float(str(team_b_odds)),
         now.strftime("%m/%d/%Y, %H:%M:%S"),
         "Unknown",
+        "Unknown",
     )
 
 
@@ -113,6 +116,7 @@ def read_match_csv(match_id: str) -> list[Match]:
                     float(row[4]),
                     row[5],
                     row[6],
+                    row[7],
                 )
             )
 
@@ -133,6 +137,7 @@ def write_match_csv(match_id: str, matches: list[Match]):
                     odds.team_b_odds,
                     odds.recorded_date,
                     odds.platchat,
+                    odds.winner,
                 ]
             )
 
@@ -143,15 +148,15 @@ def scrape_event(event_id: str):
 
     match_urls = get_matches(event_id)
 
-    for url in match_urls:
-        if url in existing_urls:
-            print("skipping", url, "already recorded")
-            continue
-
-        odds = get_odds(url)
-        print(odds)
-        if odds is not None:
-            matches.append(odds)
+    # for url in match_urls:
+    #     if url in existing_urls:
+    #         print("skipping", url, "already recorded")
+    #         continue
+    #
+    #     odds = get_odds(url)
+    #     print(odds)
+    #     if odds is not None:
+    #         matches.append(odds)
 
     write_match_csv(event_id, matches)
 
