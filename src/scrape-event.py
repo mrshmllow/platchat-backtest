@@ -77,6 +77,8 @@ class Match:
     bet: int = field(init=False)
     winnings: float = field(init=False)
 
+    date: str
+
     def __post_init__(self):
         if self.pred == Prediction.Split or self.pred == Prediction.Unknown:
             self.bet = 0
@@ -150,6 +152,20 @@ def get_odds(match_url: str):
         team.string for team in match_bet[0].select("span.match-bet-item-odds")
     ]
 
+    date_elem = soup.select_one("div.moment-tz-convert")
+
+    if date_elem is None:
+        print(match_url, "No date found?!")
+        return None
+
+    date = date_elem.attrs.get("data-utc-ts")
+
+    if date is None:
+        print(match_url, "No date attribute found?!")
+        return None
+
+    print(date)
+
     return Match(
         url=match_url,
         team_a_name=str(team_a_name),
@@ -159,6 +175,7 @@ def get_odds(match_url: str):
         recorded_date=now.strftime("%m/%d/%Y, %H:%M:%S"),
         pred=Prediction.Unknown,
         winner=Team.Unknown,
+        date=str(date),
     )
 
 
@@ -183,6 +200,7 @@ def read_match_csv(match_id: str) -> list[Match]:
                     recorded_date=row[5],
                     pred=Prediction(row[6]),
                     winner=Team(row[7]),
+                    date=row[8],
                 )
             )
 
@@ -206,6 +224,7 @@ def write_match_csv(match_id: str, matches: list[Match]):
                     odds.winner.value,
                     odds.bet,
                     odds.winnings,
+                    odds.date,
                 ]
             )
 
