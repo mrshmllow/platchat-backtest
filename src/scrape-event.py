@@ -10,7 +10,7 @@ from enum import Enum
 from bs4 import BeautifulSoup
 from urllib.request import Request, urlopen
 import csv
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from datetime import datetime
 import os.path
 
@@ -36,6 +36,9 @@ class Team(Enum):
 
         return Team.A
 
+    def __str__(self):
+        return self.value
+
 
 class Prediction(Enum):
     A = "A"
@@ -55,6 +58,9 @@ class Prediction(Enum):
             return team == Team.B
 
         return False
+
+    def __str__(self):
+        return self.value
 
 
 @dataclass
@@ -187,20 +193,20 @@ def read_match_csv(match_id: str) -> list[Match]:
         return matches
 
     with open(FILE, newline="") as csvfile:
-        match_reader = csv.reader(csvfile, dialect="excel-tab")
+        reader = csv.DictReader(csvfile, dialect="excel-tab")
 
-        for row in match_reader:
+        for row in reader:
             matches.append(
                 Match(
-                    url=row[0],
-                    team_a_name=row[1],
-                    team_a_odds=float(row[2]),
-                    team_b_name=row[3],
-                    team_b_odds=float(row[4]),
-                    recorded_date=row[5],
-                    pred=Prediction(row[6]),
-                    winner=Team(row[7]),
-                    date=row[8],
+                    url=row["url"],
+                    team_a_name=row["team_a_name"],
+                    team_a_odds=float(row["team_a_odds"]),
+                    team_b_name=row["team_b_name"],
+                    team_b_odds=float(row["team_b_odds"]),
+                    recorded_date=row["recorded_date"],
+                    pred=Prediction(row["pred"]),
+                    winner=Team(row["winner"]),
+                    date=row["date"],
                 )
             )
 
@@ -209,24 +215,12 @@ def read_match_csv(match_id: str) -> list[Match]:
 
 def write_match_csv(match_id: str, matches: list[Match]):
     with open(f"{match_id}.csv", "w", newline="") as csvfile:
-        spamwriter = csv.writer(csvfile, dialect="excel-tab")
+        fieldnames = list(Match.__annotations__)
+        writer = csv.DictWriter(csvfile, dialect="excel-tab", fieldnames=fieldnames)
 
+        writer.writeheader()
         for odds in matches:
-            spamwriter.writerow(
-                [
-                    odds.url,
-                    odds.team_a_name,
-                    odds.team_a_odds,
-                    odds.team_b_name,
-                    odds.team_b_odds,
-                    odds.recorded_date,
-                    odds.pred.value,
-                    odds.winner.value,
-                    odds.bet,
-                    odds.winnings,
-                    odds.date,
-                ]
-            )
+            writer.writerow(asdict(odds))
 
 
 def scrape_event(event_id: str):
@@ -241,7 +235,6 @@ def scrape_event(event_id: str):
             continue
 
         odds = get_odds(url)
-        print(odds)
         if odds is not None:
             matches.append(odds)
 
