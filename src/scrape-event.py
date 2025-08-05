@@ -23,6 +23,46 @@ ssl._create_default_https_context = ssl._create_unverified_context
 PLATCHAT_GUARANTEE = 500
 NORMAL_PRED = 100
 
+TAGS = {
+    "Natus Vincere": "NAVI",
+    "Team Vitality": "VIT",
+    "FUT Esports": "FUT",
+    "Team Liquid": "TL",
+    "Team Heretics": "TH",
+    "FNATIC": "FNC",
+    "Apeks": "APK",
+    "GIANTX": "GX",
+    "Gentle Mates": "M8",
+    "KOI": "KOI",
+    "Cloud9": "C9",
+    "LEVIATÁN": "LEV",
+    "Evil Geniuses": "EG",
+    "MIBR": "MIBR",
+    "100 Thieves": "100T",
+    "Sentinels": "SEN",
+    "2Game Esports": "2G",
+    "FURIA": "FUR",
+    "NRG": "NRG",
+    "G2 Esports": "G2",
+    "LOUD": "LOUD",
+    "BBL Esports": "BBL",
+    "Karmine Corp": "KC",
+    "KRÜ Esports": "KRU",
+    "T1": "T1",
+    "DRX": "DRX",
+    "ZETA DIVISION": "ZETA",
+    "DRX": "DRX",
+    "BOOM Esports": "BOOM",
+    "Global Esports": "GE",
+    "Paper Rex": "PRX",
+    "TALON": "TLN",
+    "Rex Regum Qeon": "RRQ",
+    "Gen.G": "GENG",
+    "Nongshim RedForce": "NS",
+    "DetonatioN FocusMe": "DFM",
+    "Team Secret": "TS",
+}
+
 
 class Team(Enum):
     A = "A"
@@ -109,6 +149,12 @@ class Match:
                 self.winnings = 0
 
         calculate_winnings(self.winner)
+
+        if self.team_a_name in TAGS:
+            self.team_a_name = TAGS[self.team_a_name]
+
+        if self.team_b_name in TAGS:
+            self.team_b_name = TAGS[self.team_b_name]
 
     def update_winner(self):
         req = Request(self.url)
