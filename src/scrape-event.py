@@ -1,12 +1,14 @@
 # /// script
 # requires-python = ">=3.13"
 # dependencies = [
-#   "beautifulsoup4"
+#   "beautifulsoup4",
+#   "python-dateutil"
 # ]
 # ///
 
 from typing import Literal
 from enum import Enum
+from dateutil import parser
 from bs4 import BeautifulSoup
 from urllib.request import Request, urlopen
 import csv
@@ -107,6 +109,34 @@ class Match:
                 self.winnings = 0
 
         calculate_winnings(self.winner)
+
+    def update_winner(self):
+        req = Request(self.url)
+        opened = urlopen(req)
+
+        print(opened.getcode())
+
+        html_page = opened.read()
+
+        soup = BeautifulSoup(html_page, "html.parser")
+        match_bet = soup.select(
+            "div.match-header-vs-score > div.match-header-vs-score > div.js-spoiler"
+        )
+        winner_loser_spans = match_bet[0].select("span")
+        team_a = winner_loser_spans[0].attrs.get("class")
+        team_b = winner_loser_spans[2].attrs.get("class")
+
+        if team_a == ["match-header-vs-score-winner"]:
+            self.winner = Team.A
+            return
+
+        if team_b == ["match-header-vs-score-winner"]:
+            self.winner = Team.B
+            return
+
+        print("Team had neither a winner nor loser?!")
+        print(team_a, team_b)
+        exit()
 
 
 def get_matches(stage_id: str) -> list[str]:
@@ -224,21 +254,36 @@ def write_match_csv(match_id: str, matches: list[Match]):
 
 
 def scrape_event(event_id: str):
-    matches = read_match_csv(event_id)
-    existing_urls = [match.url for match in matches]
+    existing_matches = read_match_csv(event_id)
+    matches_to_write = []
+    existing_urls = [match.url for match in existing_matches]
 
     match_urls = get_matches(event_id)
 
     for url in match_urls:
         if url in existing_urls:
-            print("skipping", url, "already recorded")
+            existing_match = next(x for x in existing_matches if x.url == url)
+
+            if (
+                parser.parse(existing_match.date) < datetime.now()
+                and existing_match.winner == Team.Unknown
+            ):
+                print(
+                    "Updating winner for",
+                    url,
+                    "as the winner is unknown and it has concluded",
+                )
+                existing_match.update_winner()
+
+            matches_to_write.append(existing_match)
+
             continue
 
         odds = get_odds(url)
         if odds is not None:
-            matches.append(odds)
+            matches_to_write.append(odds)
 
-    write_match_csv(event_id, matches)
+    write_match_csv(event_id, matches_to_write)
 
 
 def main() -> None:

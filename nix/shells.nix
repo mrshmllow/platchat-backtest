@@ -22,6 +22,7 @@
           # Mostly just for text editor
           # pkgs.python313Packages.scrapy
           pkgs.python313Packages.beautifulsoup4
+          pkgs.python313Packages.python-dateutil
         ];
 
         shellHook = builtins.concatStringsSep "\n" [
