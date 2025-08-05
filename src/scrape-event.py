@@ -243,7 +243,7 @@ def read_match_csv(match_id: str) -> list[Match]:
     return matches
 
 
-def write_match_csv(match_id: str, matches: list[Match]):
+def write_event_csv(match_id: str, matches: list[Match]):
     with open(f"{match_id}.csv", "w", newline="") as csvfile:
         fieldnames = list(Match.__annotations__)
         writer = csv.DictWriter(csvfile, dialect="excel-tab", fieldnames=fieldnames)
@@ -253,9 +253,9 @@ def write_match_csv(match_id: str, matches: list[Match]):
             writer.writerow(asdict(odds))
 
 
-def scrape_event(event_id: str):
+def scrape_event(event_id: str) -> list[Match]:
     existing_matches = read_match_csv(event_id)
-    matches_to_write = []
+    matches_to_write: list[Match] = []
     existing_urls = [match.url for match in existing_matches]
 
     match_urls = get_matches(event_id)
@@ -283,7 +283,9 @@ def scrape_event(event_id: str):
         if odds is not None:
             matches_to_write.append(odds)
 
-    write_match_csv(event_id, matches_to_write)
+    write_event_csv(event_id, matches_to_write)
+
+    return matches_to_write
 
 
 def main() -> None:
@@ -292,10 +294,25 @@ def main() -> None:
     CHINA = "2499"
     AMERICAS = "2501"
 
+    collected: list[Match] = []
+
+    # poor china
     scrape_event(CHINA)
-    scrape_event(PACIFIC)
-    scrape_event(AMERICAS)
-    scrape_event(EMEA)
+
+    collected.extend(scrape_event(PACIFIC))
+    collected.extend(scrape_event(AMERICAS))
+    collected.extend(scrape_event(EMEA))
+
+    def filter_match(match: Match) -> bool:
+        if match.pred == Prediction.Unknown or match.pred == Prediction.Split:
+            return False
+
+        if match.winner == Team.Unknown:
+            return False
+
+        return True
+
+    write_event_csv("collected", list(filter(filter_match, collected)))
 
 
 if __name__ == "__main__":
