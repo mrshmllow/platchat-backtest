@@ -135,26 +135,26 @@ class Match:
         else:
             self.bet = NORMAL_PRED
 
-        self.winnings = 0
-
-        def calculate_winnings(winner: Team):
-            if self.winner == Team.Unknown:
-                return
-
-            odds = self.team_a_odds if winner == Team.A else self.team_b_odds
-
-            if self.pred.is_team(winner):
-                self.winnings = self.bet * odds
-            else:
-                self.winnings = 0
-
-        calculate_winnings(self.winner)
+        self.calculate_winnings()
 
         if self.team_a_name in TAGS:
             self.team_a_name = TAGS[self.team_a_name]
 
         if self.team_b_name in TAGS:
             self.team_b_name = TAGS[self.team_b_name]
+
+    def calculate_winnings(self):
+        self.winnings = 0
+
+        if self.winner == Team.Unknown:
+            return
+
+        odds = self.team_a_odds if self.winner == Team.A else self.team_b_odds
+
+        if self.pred.is_team(self.winner):
+            self.winnings = self.bet * odds
+        else:
+            self.winnings = 0
 
     def update_winner(self):
         req = Request(self.url)
@@ -323,6 +323,7 @@ def scrape_event(event_id: str) -> list[Match]:
                     "as the winner is unknown and it has concluded",
                 )
                 existing_match.update_winner()
+                existing_match.calculate_winnings()
 
             matches_to_write.append(existing_match)
 
