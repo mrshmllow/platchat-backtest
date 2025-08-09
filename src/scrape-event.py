@@ -13,7 +13,7 @@ from bs4 import BeautifulSoup
 from urllib.request import Request, urlopen
 import csv
 from dataclasses import dataclass, field, asdict
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 import os.path
 
 import ssl
@@ -314,9 +314,8 @@ def scrape_event(event_id: str) -> list[Match]:
                 datetime.strptime(existing_match.date, "%Y-%m-%d %H:%M:%S").replace(
                     tzinfo=UTC
                 )
-                < datetime.now(UTC)
-                and existing_match.winner == Team.Unknown
-            ):
+                + timedelta(days=1)
+            ) < datetime.now(UTC) and existing_match.winner == Team.Unknown:
                 print(
                     "Updating winner for",
                     url,
