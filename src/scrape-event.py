@@ -186,7 +186,7 @@ class Match:
 
 
 def get_matches(stage_id: str) -> list[str]:
-    URL = f"https://www.vlr.gg/event/matches/{stage_id}/"
+    URL = f"https://www.vlr.gg/event/matches/{stage_id}/?series_id=all"
 
     req = Request(URL)
     html_page = urlopen(req).read()
