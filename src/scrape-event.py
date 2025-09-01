@@ -342,6 +342,7 @@ def main() -> None:
     PACIFIC = "2500"
     CHINA = "2499"
     AMERICAS = "2501"
+    CHAMPS = "2283"
 
     collected: list[Match] = []
 
@@ -351,6 +352,7 @@ def main() -> None:
     collected.extend(scrape_event(PACIFIC))
     collected.extend(scrape_event(AMERICAS))
     collected.extend(scrape_event(EMEA))
+    collected.extend(scrape_event(CHAMPS))
 
     def filter_match(match: Match) -> bool:
         if match.pred == Prediction.Unknown or match.pred == Prediction.Split:
